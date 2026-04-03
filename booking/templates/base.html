@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bails Arena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: #111;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            background: #222;
+        }
+
+        .menu a {
+            color: white;
+            padding: 12px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .menu a:hover {
+            background: #444;
+        }
+
+        .container {
+            padding: 12px;
+        }
+
+        .card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            font-size: 14px;
+        }
+
+        input {
+            padding: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        /* Slot colors */
+        .slot {
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .available { background: #d4edda; }
+        .booked { background: #f8d7da; }
+        .frequent { background: #fff3cd; }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    🏏 Bails Arena
+</div>
+
+<div class="menu">
+    <a href="/">🏠 Home</a>
+    <a href="/reports/">📊 Reports</a>
+    <a href="/admin/">⚙️ Admin</a>
+</div>
+
+<div class="container">
+    {% block content %}
+    {% endblock %}
+</div>
+
+</body>
+</html>

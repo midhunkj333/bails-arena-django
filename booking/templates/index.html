@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h3>Select Date</h3>
+    <input type="date" id="date" onchange="loadSlots()" />
+</div>
+
+<div id="slots"></div>
+
+<script>
+function loadSlots() {
+    const date = document.getElementById("date").value;
+
+    fetch(`/api/slots/?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("slots");
+            container.innerHTML = "";
+
+            data.forEach(s => {
+                const div = document.createElement("div");
+                div.className = `slot ${s.status}`;
+                div.innerText = `${s.slot} ${s.customer ? '- ' + s.customer : ''}`;
+                container.appendChild(div);
+            });
+        });
+}
+</script>
+
+{% endblock %}

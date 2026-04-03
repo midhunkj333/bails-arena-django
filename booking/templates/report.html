@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h3>Generate Report</h3>
+
+    <form method="get">
+        <label>From</label>
+        <input type="date" name="from" required>
+
+        <label>To</label>
+        <input type="date" name="to" required>
+
+        <button class="btn" type="submit">Generate</button>
+    </form>
+</div>
+
+{% if bookings %}
+<div class="card">
+    <h3>Summary</h3>
+    <p><b>Total Bookings:</b> {{ total }}</p>
+    <p><b>Total Revenue:</b> ₹{{ revenue }}</p>
+
+    <a href="/download-report/?from={{start}}&to={{end}}">
+        <button class="btn">Download CSV</button>
+    </a>
+</div>
+
+<div class="card">
+    <h3>Booking Details</h3>
+
+    {% for b in bookings %}
+        <div style="border-bottom:1px solid #eee; padding:6px 0;">
+            <b>{{ b.date }}</b><br>
+            {{ b.slot }}<br>
+            {{ b.customer.name }}<br>
+            ₹{{ b.amount }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
