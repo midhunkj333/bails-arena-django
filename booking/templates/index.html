@@ -13,11 +13,18 @@
 function loadSlots() {
     const date = document.getElementById("date").value;
 
+    if (!date) return;
+
     fetch(`/api/slots/?date=${date}`)
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById("slots");
             container.innerHTML = "";
+
+            if (data.length === 0) {
+                container.innerHTML = "<p>No slots available</p>";
+                return;
+            }
 
             data.forEach(s => {
                 const div = document.createElement("div");
@@ -25,8 +32,21 @@ function loadSlots() {
                 div.innerText = `${s.slot} ${s.customer ? '- ' + s.customer : ''}`;
                 container.appendChild(div);
             });
+        })
+        .catch(err => {
+            console.error("Error loading slots:", err);
         });
 }
+
+// ✅ AUTO LOAD TODAY
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById("date");
+
+    dateInput.value = today;
+
+    loadSlots(); // 🔥 auto trigger
+});
 </script>
 
 {% endblock %}
