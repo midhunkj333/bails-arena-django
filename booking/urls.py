@@ -3,9 +3,9 @@ from .views import index, get_slots, report, report_view, download_report
 
 urlpatterns = [
     path('', index),
-    path('slots/', get_slots),
 
     # API
+    path('api/slots/', get_slots),   # 👈 FIXED
     path('api/report/', report),
 
     # UI
