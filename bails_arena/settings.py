@@ -84,8 +84,13 @@ WSGI_APPLICATION = 'bails_arena.wsgi.application'
 #       'NAME': BASE_DIR / 'db.sqlite3',
 #   }
 #}
+
 DATABASES = {
-    'default': dj_database_url.config(default='postgresql://bailsarena:oV5dfcblSp51zvYx8XQvZnkVcRkKqhlW@dpg-d7b7q3fafjfc739fffhg-a/bailsarena_db')
+    'default': dj_database_url.parse(
+        'postgres://bailsarena:oV5dfcblSp51zvYx8XQvZnkVcRkKqhlW@dpg-d7b7q3fafjfc739fffhg-a.oregon-postgres.render.com:5432/bailsarena_db',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 # Password validation
