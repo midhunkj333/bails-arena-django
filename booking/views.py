@@ -1,10 +1,9 @@
 from django.shortcuts import render
 from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
+from django.contrib.auth.decorators import login_required
 from .models import Slot, Booking
 from datetime import datetime
-from django.contrib.auth.decorators 
-import login_required
 import csv
 
 
@@ -45,7 +44,7 @@ def get_slots(request):
     return JsonResponse(data, safe=False)
 
 
-# ---------------- REPORT API (JSON - keep it) ----------------
+# ---------------- REPORT API ----------------
 @login_required
 def report(request):
     start = request.GET.get('from')
@@ -62,7 +61,7 @@ def report(request):
     })
 
 
-# ---------------- REPORT PAGE (NEW) ----------------
+# ---------------- REPORT PAGE ----------------
 @login_required
 def report_view(request):
     start = request.GET.get('from')
@@ -86,7 +85,7 @@ def report_view(request):
     })
 
 
-# ---------------- DOWNLOAD CSV (NEW) ----------------
+# ---------------- DOWNLOAD CSV ----------------
 @login_required
 def download_report(request):
     start = request.GET.get('from')
