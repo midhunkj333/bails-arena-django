@@ -3,14 +3,19 @@ from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
 from .models import Slot, Booking
 from datetime import datetime
+from django.contrib.auth.decorators 
+import login_required
 import csv
 
+
 # ---------------- HOME ----------------
+@login_required
 def index(request):
     return render(request, "index.html")
 
 
 # ---------------- SLOT API ----------------
+@login_required
 def get_slots(request):
     date = request.GET.get('date')
 
@@ -41,6 +46,7 @@ def get_slots(request):
 
 
 # ---------------- REPORT API (JSON - keep it) ----------------
+@login_required
 def report(request):
     start = request.GET.get('from')
     end = request.GET.get('to')
@@ -57,6 +63,7 @@ def report(request):
 
 
 # ---------------- REPORT PAGE (NEW) ----------------
+@login_required
 def report_view(request):
     start = request.GET.get('from')
     end = request.GET.get('to')
@@ -80,6 +87,7 @@ def report_view(request):
 
 
 # ---------------- DOWNLOAD CSV (NEW) ----------------
+@login_required
 def download_report(request):
     start = request.GET.get('from')
     end = request.GET.get('to')

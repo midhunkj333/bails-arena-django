@@ -78,7 +78,13 @@
     border: 1px solid #ccc;
     box-sizing: border-box; /* ✅ FIX */
 }
-
+.card input[type="date"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    font-size: 16px; /* prevents zoom on iOS */
+}
         /* Slot colors */
         .slot {
             padding: 12px;
