@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'booking'
+    'booking',
+    'bails_arena'
 ]
 
 MIDDLEWARE = [
@@ -87,7 +88,7 @@ WSGI_APPLICATION = 'bails_arena.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.parse(
-        'postgres://bailsarena:oV5dfcblSp51zvYx8XQvZnkVcRkKqhlW@dpg-d7b7q3fafjfc739fffhg-a.oregon-postgres.render.com:5432/bailsarena_db',
+        'postgresql://neondb_owner:npg_UXDnsr13GNoY@ep-calm-sunset-am78on29.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
         conn_max_age=600,
         ssl_require=True
     )
@@ -117,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
