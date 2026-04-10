@@ -1,23 +1,158 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 
-<div class="card">
-    <h3>Select Date</h3>
-    <input type="date" id="date" onchange="loadSlots()" />
+<div class="container">
+
+    <!-- 📅 DATE -->
+    <div class="card">
+        <h3>Select Date</h3>
+        <input type="date" id="date" class="input" onchange="onDateChange()" />
+    </div>
+
+    <!-- 📆 CALENDAR PREVIEW -->
+    <!--<div class="card">
+        <label>Calendar Preview</label>
+        <div id="calendarPreview" class="calendar"></div>
+    </div>-->
+
+    <!-- 🔄 Loader -->
+    <div id="loader" class="loader-container">
+        <img src="{% static 'images/logo.png' %}" class="logo-loader">
+        <p>Loading slots...</p>
+    </div>
+
+    <!-- 📅 Slots -->
+    <div id="slots"></div>
+
 </div>
 
-{% load static %}
+<style>
 
-<div id="loader" style="display:none; text-align:center; margin-top:40px;">
-    <img src="{% static 'images/logo.png' %}" 
-         style="width:80px; animation: spin 1.5s linear infinite;">
-    <p style="margin-top:10px;">Loading...</p>
-</div>
+/* 🌌 BACKGROUND */
+body {
+    background: linear-gradient(135deg, #1e1e2f, #2c2c54);
+    color: white;
+    font-family: 'Inter', sans-serif;
+}
 
-<div id="slots"></div>
+.container {
+    padding: 15px;
+}
+
+/* CARD */
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+}
+
+/* INPUT */
+.input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 10px;
+}
+
+/* LOADER */
+.loader-container {
+    display: none;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.logo-loader {
+    width: 70px;
+    animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* SLOT */
+.slot {
+    background: rgba(255,255,255,0.05);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: 0.3s;
+}
+
+.slot.available {
+    border-left: 4px solid #43e97b;
+}
+
+.slot.booked {
+    border-left: 4px solid #ff6b6b;
+    opacity: 0.7;
+}
+
+.slot-header {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.slot-details {
+    margin-top: 10px;
+}
+
+.book-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+/* 📆 CALENDAR */
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.day {
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+}
+
+.day.header {
+    font-weight: bold;
+    opacity: 0.6;
+}
+
+.day.active {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: black;
+    font-weight: bold;
+}
+
+.day.today {
+    border: 1px solid #4facfe;
+}
+
+</style>
 
 <script>
+
+/* 📅 DATE CHANGE */
+function onDateChange() {
+    loadSlots();
+    renderCalendar();
+}
+
+/* 🔄 LOAD SLOTS */
 function loadSlots() {
     const date = document.getElementById("date").value;
 
@@ -27,12 +162,12 @@ function loadSlots() {
     const container = document.getElementById("slots");
 
     container.innerHTML = "";
-    loader.style.display = "block"; // show loader
+    loader.style.display = "block";
 
     fetch(`/api/slots/?date=${date}`)
         .then(res => res.json())
         .then(data => {
-            loader.style.display = "none"; // hide loader
+            loader.style.display = "none";
 
             if (data.length === 0) {
                 container.innerHTML = "<p>No slots available</p>";
@@ -42,41 +177,112 @@ function loadSlots() {
             data.forEach(s => {
                 const div = document.createElement("div");
                 div.className = `slot ${s.status}`;
+
                 div.innerHTML = `
                     <div class="slot-header">
                         ${s.slot} ${s.customer ? '- ' + s.customer : ''}
                     </div>
+
                     <div class="slot-details" style="display:none;">
-                        <p>Status: ${s.status}</p>
-                        <p>Customer: ${s.customer || 'N/A'}</p>
+                        ${
+                            s.status === 'available'
+                            ? `<button class="book-btn">➕ Book Slot</button>`
+                            : `<p>Already booked</p>`
+                        }
                     </div>
                 `;
 
-                // 🔥 CLICK TO EXPAND
-                div.addEventListener("click", function () {
-                    const details = this.querySelector(".slot-details");
-                    details.style.display = 
+                div.querySelector(".slot-header").onclick = () => {
+                    const details = div.querySelector(".slot-details");
+                    details.style.display =
                         details.style.display === "none" ? "block" : "none";
-                });
+                };
+
+                const btn = div.querySelector(".book-btn");
+                if (btn) {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        window.location.href =
+                            `/book/?date=${date}&slot=${encodeURIComponent(s.slot)}`;
+                    };
+                }
 
                 container.appendChild(div);
             });
         })
-        .catch(err => {
+        .catch(() => {
             loader.style.display = "none";
-            console.error("Error loading slots:", err);
         });
 }
 
-// ✅ AUTO LOAD TODAY
+/* 📆 CALENDAR LOGIC */
+function renderCalendar() {
+
+    const container = document.getElementById("calendarPreview");
+    container.innerHTML = "";
+
+    const selectedDate = new Date(document.getElementById("date").value);
+
+    if (!selectedDate) return;
+
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const headers = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+    headers.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "day header";
+        div.innerText = h;
+        container.appendChild(div);
+    });
+
+    for (let i = 0; i < firstDay; i++) {
+        container.appendChild(document.createElement("div"));
+    }
+
+const todayStr = getLocalDateString(new Date());
+const selectedStr = document.getElementById("date").value;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month, d);
+        const formatted = dateObj.toISOString().split("T")[0];
+
+        const div = document.createElement("div");
+        div.className = "day";
+        div.innerText = d;
+
+        if (formatted === selectedStr) {
+            div.classList.add("active");
+        }
+
+        if (formatted === todayStr) {
+            div.classList.add("today");
+        }
+
+        container.appendChild(div);
+    }
+}
+function getLocalDateString(date) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+}
+/* 🚀 INIT */
 document.addEventListener("DOMContentLoaded", function () {
+
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.getElementById("date");
 
     dateInput.value = today;
 
-    loadSlots(); // 🔥 auto trigger
+    loadSlots();
+    renderCalendar();
 });
+
 </script>
 
 {% endblock %}

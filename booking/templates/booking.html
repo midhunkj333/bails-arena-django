@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h2>Book Slot</h2>
+        <p>{{ date }} • {{ slot }}</p>
+    </div>
+
+    <!-- CUSTOMER -->
+    <div class="card">
+        <label>Customer</label>
+
+        <select id="customerSelect" class="input"></select>
+
+        <button class="btn ghost" onclick="openCustomerModal()">+ Add Customer</button>
+    </div>
+
+    <!-- SLOT -->
+    <div class="card">
+        <label>Select Slots</label>
+        <div id="slotSelection" class="slot-grid"></div>
+    </div>
+
+    <div class="card">
+        <label>Amount (₹)</label>
+        <input type="number" id="amount" class="input" placeholder="Enter amount" />
+    </div>
+
+    <!-- REPEAT -->
+    <div class="card">
+        <label class="toggle">
+            <input type="checkbox" id="seriesToggle">
+            <span>Repeat Booking</span>
+        </label>
+
+        <div id="seriesOptions" class="fade">
+            <select id="repeatType" class="input">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+            </select>
+
+            <label>Repeat Till</label>
+<input type="date" id="endDate" class="input">
+<small class="hint">Select last date for repeated booking</small>
+        </div>
+    </div>
+
+    <!-- ERROR -->
+    <div id="errorBox" class="error-box"></div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <button class="btn primary full" onclick="submitBooking()">
+        <span id="bookingText">Confirm Booking</span>
+        <div id="bookingLoader" class="loader hidden"></div>
+    </button>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div id="customerModal" class="modal">
+    <div class="modal-content slide-up">
+
+        <h3>Add Customer</h3>
+
+        <input type="text" id="newCustomerName" class="input" placeholder="Name" />
+        <input type="text" id="newCustomerPhone" class="input" placeholder="Phone Number" />
+
+        <label class="toggle">
+            <input type="checkbox" id="isFrequent">
+            <span>Frequent Customer</span>
+        </label>
+
+        <div id="customerError" class="error-box"></div>
+
+        <button class="btn primary full" onclick="saveCustomer()">
+            <span id="customerText">Save</span>
+            <div id="customerLoader" class="loader hidden"></div>
+        </button>
+
+        <button class="btn ghost full" onclick="closeCustomerModal()">Cancel</button>
+    </div>
+</div>
+
+<style>
+
+/* 🌌 GLOBAL */
+body {
+    background: linear-gradient(135deg, #1e1e2f, #2c2c54);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.container {
+    padding: 15px;
+}
+
+/* HEADER */
+.header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+.header p {
+    opacity: 0.7;
+}
+
+/* CARD */
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border-radius: 16px;
+    margin-top: 15px;
+}
+
+/* INPUT */
+.input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+/* BUTTONS */
+.btn {
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.btn.ghost {
+    background: transparent;
+    color: #aaa;
+}
+
+.btn.full {
+    width: 100%;
+}
+
+/* SLOT GRID */
+.slot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.slot-item {
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.slot-item.selected {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: black;
+}
+
+/* FOOTER */
+.footer {
+    position: sticky;
+    bottom: 0;
+    padding: 10px;
+    background: #1e1e2f;
+}
+
+/* MODAL */
+.modal {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: none;
+}
+
+.modal-content {
+    background: #2c2c54;
+    padding: 20px;
+    border-radius: 20px 20px 0 0;
+}
+
+/* TOGGLE */
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* ERROR */
+.error-box {
+    color: #ff6b6b;
+    margin-top: 10px;
+}
+
+/* LOADER */
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #fff;
+    border-top: 3px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+</style>
+
+<script>
+let selectedSlots = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+    const endDateInput = document.getElementById("endDate");
+    endDateInput.min = "{{ date }}";  // restrict past
+});
+
+document.getElementById("seriesToggle").addEventListener("change", function () {
+    const options = document.getElementById("seriesOptions");
+
+    options.style.display = this.checked ? "block" : "none";
+
+    if (this.checked) {
+        // default 7 days ahead
+        const today = new Date("{{ date }}");
+        today.setDate(today.getDate() + 7);
+
+        document.getElementById("endDate").value =
+            today.toISOString().split("T")[0];
+    }
+});
+
+// 🔹 Load customers
+function loadCustomers() {
+    fetch('/api/customers/')
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("customerSelect");
+            select.innerHTML = "";
+
+            data.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.text = c.name;
+                select.appendChild(opt);
+            });
+        });
+}
+
+// 🔹 Load slots for selection
+function loadSlotSelection() {
+    fetch(`/api/slots/?date={{ date }}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("slotSelection");
+            container.innerHTML = "";
+
+            data.forEach(s => {
+                const div = document.createElement("div");
+                div.className = "slot-item";
+                div.innerText = s.slot;
+
+                // preselect current slot
+                if (s.slot === "{{ slot }}") {
+                    div.classList.add("selected");
+                    selectedSlots.push(s.slot);
+                }
+
+                div.onclick = () => {
+                    div.classList.toggle("selected");
+
+                    if (selectedSlots.includes(s.slot)) {
+                        selectedSlots = selectedSlots.filter(x => x !== s.slot);
+                    } else {
+                        selectedSlots.push(s.slot);
+                    }
+                };
+
+                container.appendChild(div);
+            });
+        });
+}
+
+// 🔹 Repeat toggle
+document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("seriesToggle");
+
+    toggle.addEventListener("change", function () {
+        document.getElementById("seriesOptions").style.display =
+            this.checked ? "block" : "none";
+    });
+
+    loadCustomers();
+    loadSlotSelection();
+});
+
+// 🔹 Customer modal
+function openCustomerModal() {
+    document.getElementById("customerModal").style.display = "block";
+}
+
+function closeCustomerModal() {
+    document.getElementById("customerModal").style.display = "none";
+}
+function isValidPhone(phone) {
+    return /^[6-9]\d{9}$/.test(phone);  // Indian format
+}
+// 🔹 Save customer
+function saveCustomer() {
+    const name = document.getElementById("newCustomerName").value.trim();
+    const phone = document.getElementById("newCustomerPhone").value.trim();
+    const isFrequent = document.getElementById("isFrequent").checked;
+
+    const errorBox = document.getElementById("customerError");
+
+    // reset
+    errorBox.innerText = "";
+
+    // 📱 Phone validation
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+        errorBox.innerText = "Enter valid 10-digit mobile number";
+        return;
+    }
+
+    // loader
+    toggleLoader("customer", true);
+
+    fetch('/api/customers/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ name, phone, is_frequent: isFrequent })
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw data;
+        }
+
+        closeCustomerModal();
+        loadCustomers();
+    })
+    .catch(err => {
+        errorBox.innerText = err.error || "Something went wrong";
+    })
+    .finally(() => toggleLoader("customer", false));
+}
+
+// 🔹 Submit booking
+function submitBooking() {
+
+    const errorBox = document.getElementById("errorBox");
+    errorBox.innerText = "";
+
+    // ✅ FIX: define customer
+    const customer = document.getElementById("customerSelect").value;
+
+    const repeat = document.getElementById("seriesToggle").checked;
+    const repeatType = document.getElementById("repeatType").value;
+    const endDate = document.getElementById("endDate").value;
+    const amount = document.getElementById("amount").value;
+
+    // ✅ validations
+    if (!customer) {
+        errorBox.innerText = "Please select a customer";
+        return;
+    }
+
+    if (!amount || amount <= 0) {
+        errorBox.innerText = "Amount is required";
+        return;
+    }
+
+    if (repeat && !endDate) {
+        errorBox.innerText = "Please select repeat end date";
+        return;
+    }
+
+    toggleLoader("booking", true);
+
+    fetch('/api/book/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            customer,   // ✅ now defined
+            date: "{{ date }}",
+            slots: selectedSlots,
+            repeat,
+            repeatType,
+            endDate,
+            amount
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) throw data;
+
+        alert("Booking successful 🎉");
+        window.location.href = "/";
+    })
+    .catch(err => {
+        errorBox.innerText = err.error || "Booking failed";
+    })
+    .finally(() => toggleLoader("booking", false));
+}
+
+function getCSRFToken() {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+
+            if (cookie.startsWith('csrftoken=')) {
+                cookieValue = cookie.substring('csrftoken='.length);
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+function toggleLoader(type, show) {
+    document.getElementById(type + "Loader").classList.toggle("hidden", !show);
+    document.getElementById(type + "Text").style.display = show ? "none" : "inline";
+}
+</script>
+
+{% endblock %}
