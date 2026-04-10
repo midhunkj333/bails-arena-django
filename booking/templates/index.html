@@ -7,6 +7,14 @@
     <input type="date" id="date" onchange="loadSlots()" />
 </div>
 
+{% load static %}
+
+<div id="loader" style="display:none; text-align:center; margin-top:40px;">
+    <img src="{% static 'images/logo.png' %}" 
+         style="width:80px; animation: spin 1.5s linear infinite;">
+    <p style="margin-top:10px;">Loading...</p>
+</div>
+
 <div id="slots"></div>
 
 <script>
@@ -15,11 +23,16 @@ function loadSlots() {
 
     if (!date) return;
 
+    const loader = document.getElementById("loader");
+    const container = document.getElementById("slots");
+
+    container.innerHTML = "";
+    loader.style.display = "block"; // show loader
+
     fetch(`/api/slots/?date=${date}`)
         .then(res => res.json())
         .then(data => {
-            const container = document.getElementById("slots");
-            container.innerHTML = "";
+            loader.style.display = "none"; // hide loader
 
             if (data.length === 0) {
                 container.innerHTML = "<p>No slots available</p>";
@@ -29,11 +42,28 @@ function loadSlots() {
             data.forEach(s => {
                 const div = document.createElement("div");
                 div.className = `slot ${s.status}`;
-                div.innerText = `${s.slot} ${s.customer ? '- ' + s.customer : ''}`;
+                div.innerHTML = `
+                    <div class="slot-header">
+                        ${s.slot} ${s.customer ? '- ' + s.customer : ''}
+                    </div>
+                    <div class="slot-details" style="display:none;">
+                        <p>Status: ${s.status}</p>
+                        <p>Customer: ${s.customer || 'N/A'}</p>
+                    </div>
+                `;
+
+                // 🔥 CLICK TO EXPAND
+                div.addEventListener("click", function () {
+                    const details = this.querySelector(".slot-details");
+                    details.style.display = 
+                        details.style.display === "none" ? "block" : "none";
+                });
+
                 container.appendChild(div);
             });
         })
         .catch(err => {
+            loader.style.display = "none";
             console.error("Error loading slots:", err);
         });
 }

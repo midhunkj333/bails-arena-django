@@ -96,6 +96,27 @@
         .available { background: #d4edda; }
         .booked { background: #f8d7da; }
         .frequent { background: #fff3cd; }
+        @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.slot {
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.slot:hover {
+    transform: scale(1.02);
+}
+
+.slot-details {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+}
     </style>
 </head>
 
@@ -105,11 +126,14 @@
     🏏 Bails Arena
 </div>
 
+{% if not hide_menu %}
 <div class="menu">
     <a href="/">🏠 Home</a>
     <a href="/reports/">📊 Reports</a>
     <a href="/admin/">⚙️ Admin</a>
+    <a href="/logout/">🚪 Logout</a>
 </div>
+{% endif %}
 
 <div class="container">
     {% block content %}

@@ -34,6 +34,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +44,25 @@ INSTALLED_APPS = [
     'booking',
     'bails_arena'
 ]
+
+JAZZMIN_SETTINGS = {
+    "topmenu_links": [
+        {"name": "🏠 Bails Arena", "url": "/"},
+    ],
+    "custom_links": {
+        "booking": [
+            {
+                "name": "Back to Site",
+                "url": "/",
+                "icon": "fas fa-arrow-left",
+            }
+        ]
+    },
+    "site_title": "Bails Arena",
+    "site_header": "Bails Arena Admin",
+    "welcome_sign": "Welcome Midhun 👋",
+    "theme": "darkly",
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,7 +80,7 @@ ROOT_URLCONF = 'bails_arena.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -142,5 +162,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+SITE_URL = '/'
