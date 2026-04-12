@@ -425,8 +425,17 @@ function submitBooking() {
         const data = await res.json();
 
         if (!res.ok) throw data;
+        if (data.success) {
 
-        alert("Booking successful 🎉");
+        if (data.mode === "MANUAL") {
+            openWhatsApp(data.phone, data.message);
+        }
+
+        alert("Booking successful!");
+
+        } else {
+            alert(data.error);
+        }
         window.location.href = "/";
     })
     .catch(err => {
@@ -434,7 +443,21 @@ function submitBooking() {
     })
     .finally(() => toggleLoader("booking", false));
 }
+function openWhatsApp(phone, message) {
 
+    // remove spaces, +91 handling
+    phone = phone.replace(/\D/g, '');
+
+    if (phone.length === 10) {
+        phone = '91' + phone; // India default
+    }
+
+    const encodedMsg = encodeURIComponent(message);
+
+    const url = `https://wa.me/${phone}?text=${encodedMsg}`;
+
+    window.open(url, '_blank'); // opens WhatsApp chat
+}
 function getCSRFToken() {
     let cookieValue = null;
 

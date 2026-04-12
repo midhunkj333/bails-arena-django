@@ -14,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from .models import Slot, Booking, Customer, Turf, BookingGroup
 from django.db import IntegrityError
+from django.conf import settings
+import requests
 
 def login_view(request):
     if request.method == "POST":
@@ -177,12 +179,43 @@ def book_slot(request):
 
                     created.append(str(booking.id))
 
-        return JsonResponse({
-            "created_count": len(created),
-            "conflicts_count": len(conflicts),
-            "created": created,
-            "conflicts": conflicts,
-            "message": f"{len(created)} bookings created successfully"
+        # after booking success
+
+        message = f"""
+       🏟️ *Turf Booking Confirmed*
+
+        👤 Name: {customer.name}
+        📅 Date: {date}
+        ⏰ Slots: {', '.join(slots)}
+        💰 Amount: ₹{amount}
+
+        📍 Bails Arena Oval Turf
+
+        See you on the field! ⚽
+        """
+        if settings.WHATSAPP_MODE == "AUTO":
+            send_whatsapp_meta(customer.phone, message)
+
+            return JsonResponse({
+                "created_count": len(created),
+                "conflicts_count": len(conflicts),
+                "created": created,
+                "conflicts": conflicts,
+                "message": message.strip(),
+                "success": True,
+                "phone": customer.phone, 
+                "mode": "AUTO"
+            })
+        else:
+            return JsonResponse({
+                "created_count": len(created),
+                "conflicts_count": len(conflicts),
+                "created": created,
+                "conflicts": conflicts,
+                "message": message.strip(),
+                "success": True,
+                "phone": customer.phone, 
+                "mode": "MANUAL"
         })
 
     except Exception as e:
@@ -285,3 +318,25 @@ def download_report(request):
         writer.writerow([b.date, b.slot, b.customer.name, b.amount])
 
     return response
+
+
+
+def send_whatsapp_meta(phone, message):
+
+    url = "https://graph.facebook.com/v19.0/YOUR_PHONE_ID/messages"
+
+    headers = {
+        "Authorization": "Bearer YOUR_ACCESS_TOKEN",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "text",
+        "text": {
+            "body": message
+        }
+    }
+
+    requests.post(url, headers=headers, json=payload)
